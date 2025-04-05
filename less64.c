@@ -1,10 +1,10 @@
-// /snap/bin/z88dk.zcc +zxn -vn -subtype=dot -startup=16 -clib=sdcc_iy -SO3 --max-allocs-per-node200000 --opt-code-size less64.c font_8x8_iso88592.asm -o less64 -create-app
+// /snap/bin/z88dk.zcc +zxn -vn -subtype=dot -startup=16 -clib=sdcc_iy -SO3 --max-allocs-per-node200000 --opt-code-size less64.c font_8x8_.asm -o less64 -create-app
 // /snap/bin/z88dk.zcc +zx -vn -subtype=dot -startup=4 -clib=sdcc_iy -SO3 --opt-code-size less64.c -o less64s -create-app
 
 #pragma output CLIB_EXIT_STACK_SIZE = 3
 
 #if __ZXNEXT
-#pragma redirect CRT_OTERM_FONT_8X8 = _font_8x8_iso8859_2
+#pragma redirect CRT_OTERM_FONT_8X8 = _font_8x8_
 //#pragma output CRT_ENABLE_COMMANDLINE_EX = 0x80
 #pragma output NEXTOS_VERSION = 0
 #endif
@@ -79,44 +79,36 @@ draw_screen(void)
 {
     unsigned char y;
     unsigned char *buf = bufor2;
-    unsigned char was_new_page_or_zero = 0;
 
-    ioctl(1, IOCTL_OTERM_SET_CURSOR_COORD, 0, 0);
+    ioctl(1, IOCTL_OTERM_CLS);
     for (y = 0; y < 24; y++) {
-        unsigned char was_enter = 0;
         unsigned char x;
 
+        ioctl(1, IOCTL_OTERM_SET_CURSOR_COORD, 0, y);
+
         for (x = 0; x < WIDTH; x++) {
-            if (was_enter || was_new_page_or_zero) {
-                putchar(' ');
-            } else {
-                if (!*buf) {
-                    was_new_page_or_zero = 1;
-                    putchar(' ');
-                    continue;
-                }
-                if (*buf == 12) {
-                   was_new_page_or_zero = 1;
-                   putchar(' ');
-                   buf++;
-                   continue;
-                }
-                if (*buf == '\n') {
-                    was_enter = 1;
-                    putchar(' ');
-                    buf++;
-                    continue;
-                }
-                if (*buf == 7 || *buf == 13) {
-                    buf++;
-                    x--;
-                    continue;
-                }
+            switch (*buf) {
+            case 12:
+               buf++;
+            case 0:
+               goto ret;
+               break;
+            case 10:
+               buf++;
+               goto next;
+               break;
+            case 7:
+            case 13:
+                buf++;
+                x--;
+                break;
+            default:
                 putchar(*buf++);
             }
         }
+next:
     }
-
+ret:
     return buf - bufor2;
 }
 
