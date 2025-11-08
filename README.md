@@ -9,6 +9,18 @@ Usage:
 .less64 somefile
 ```
 
+less85
+======
+
+It is similar, but with with a 6x8 font, which was based on fonts
+from http://int10h.org/oldschool-pc-fonts/
+
+To build:
+```
+make
+```
+
+
 Keys:
 -----
 
