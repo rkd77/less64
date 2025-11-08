@@ -48,20 +48,12 @@ code_ok:
    pop bc
 
    ld a, c
-   and 7
-   jp z, jump0
+   and 3
+   jr z, jump0
    dec a
-   jp z, jump1
+   jr z, jump1
    dec a
-   jp z, jump2
-   dec a
-   jp z, jump3
-   dec a
-   jp z, jump4
-   dec a
-   jp z, jump5
-   dec a
-   jp z, jump6
+   jr z, jump2
 
 jump7:                                  ; second display bits 5-0
 jump3:                                  ; first display bits 5-0
@@ -97,6 +89,7 @@ loop0:
     djnz loop0
     ret
 
+jump5:                                  ; second display bits 1-0, first display next 7-4
 jump1:                                  ; first screen 1-0, second screen 7-4
     push hl
     push de
@@ -116,7 +109,7 @@ loop1a:
     djnz loop1a
 
     pop de
-    set 5,d
+    call increment
 preloop1b:
     pop hl
     ld b,8
@@ -135,28 +128,7 @@ loop1b:
     djnz loop1b
     ret
 
-jump5:                                  ; second display bits 1-0, first display next 7-4
-    push hl
-    push de
-    ld b,8
-loop5a:
-    ld a,(hl)
-    rlca
-    rlca
-    and 3                           ; 00000011
-    ld c,a
-    ld a,(de)
-    and 252
-    or c
-    ld (de), a
-    inc d
-    inc hl
-    djnz loop5a
-    pop de
-    inc de
-    res 5,d
-    jr preloop1b
-
+jump6:                                  ; first display bits 3-0; second display bits 7-6
 jump2:                                  ; second display bits 3-0, first display next 7-6
     push hl
     push de
@@ -177,8 +149,7 @@ loop2a:
     inc hl
     djnz loop2a
     pop de
-    inc de
-    res 5,d
+    call increment
 preloop2b:
     ld b,8
     pop hl
@@ -199,26 +170,12 @@ loop2b:
     djnz loop2b
     ret
 
-jump6:                                  ; first display bits 3-0; second display bits 7-6
-    push hl
-    push de
-    ld b,8
-loop6a:
-    ld a,(hl)
-    rrca
-    rrca
-    rrca
-    rrca
-    and 15                          ; 00001111
-    ld c,a
-    ld a,(de)
-    and 240
-    or c
-    ld (de),a
-    inc d
-    inc hl
-    djnz loop6a
-
-    pop de
+increment:
+    bit 5,d
+    jr z,first_screen
+    res 5,d
+    inc de
+    ret
+first_screen:
     set 5,d
-    jr preloop2b
+    ret
